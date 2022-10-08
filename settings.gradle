@@ -1,0 +1,3 @@
+rootProject.name = 'otusJavaBarmatin'
+include 'hw01-gradle'
+
