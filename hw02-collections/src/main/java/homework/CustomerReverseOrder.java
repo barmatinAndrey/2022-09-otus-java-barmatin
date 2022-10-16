@@ -17,6 +17,11 @@ public class CustomerReverseOrder {
     }
 
     public Customer take() {
-        return iterator.next();
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+        else {
+            return null;
+        }
     }
 }
