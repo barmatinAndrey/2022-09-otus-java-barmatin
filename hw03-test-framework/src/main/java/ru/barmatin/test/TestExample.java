@@ -7,44 +7,36 @@ import ru.barmatin.annotation.Test;
 public class TestExample {
 
     @Before
-    boolean beforeTest() {
-        return true;
+    void beforeTest1() {
+        System.out.println("beforeTest1");
+    }
+
+    @Before
+    void beforeTest2() {
+        System.out.println("beforeTest2");
     }
 
     @Test
-    boolean test1() {
-        try {
-            return Integer.parseInt("8") == 8;
-        }
-        catch (NumberFormatException e) {
-            return false;
-        }
+    void test1() {
+        boolean result = Integer.parseInt("aaa") == 8;
+        System.out.println("test1");
     }
 
 
     @Test
-    boolean test2() {
-        try {
-            return Integer.parseInt("aaa") == 8;
-        }
-        catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    @Test
-    boolean test3() {
-        try {
-            return Integer.parseInt("5") == 8;
-        }
-        catch (NumberFormatException e) {
-            return false;
-        }
+    void test2() {
+        boolean result = Integer.parseInt("8") == 8;
+        System.out.println("test2");
     }
 
     @After
-    boolean afterTest() {
-        return true;
+    void afterTest1() {
+        System.out.println("afterTest1");
+    }
+
+    @After
+    void afterTest2() {
+        System.out.println("afterTest2");
     }
 
 }

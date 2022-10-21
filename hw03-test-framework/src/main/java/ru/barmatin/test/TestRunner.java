@@ -3,7 +3,6 @@ package ru.barmatin.test;
 import ru.barmatin.annotation.After;
 import ru.barmatin.annotation.Before;
 import ru.barmatin.annotation.Test;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -68,29 +67,32 @@ public class TestRunner {
 
             beforeSuccess = runMethodList(object, beforeMethodList);
             if (beforeSuccess) {
-                testSuccess = (boolean)method.invoke(object);
+                testSuccess = runMethod(method, object);
             }
             afterSuccess = runMethodList(object, afterMethodList);
-
             return beforeSuccess && testSuccess && afterSuccess;
-
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            return false;
+        }
+    }
+
+    private static boolean runMethod(Method method, Object object) {
+        try {
+            method.invoke(object);
+            return true;
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            return false;
         }
     }
 
     private static boolean runMethodList(Object object, List<Method> methodList) {
-        int countSuccess = 0;
-        try {
-            for (Method method: methodList) {
-                if ((boolean)method.invoke(object)) {
-                    countSuccess++;
-                }
-            }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        boolean allSuccess = true;
+        for (Method method : methodList) {
+            if (!runMethod(method, object)) {
+                allSuccess = false;
+            };
         }
-        return countSuccess == methodList.size();
+        return allSuccess;
     }
 
 }
