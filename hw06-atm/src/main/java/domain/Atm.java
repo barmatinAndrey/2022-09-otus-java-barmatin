@@ -1,26 +1,68 @@
 package domain;
 
-import domain.banknote.*;
-import lombok.Getter;
-
+import exception.SumNotAvailableException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-@Getter
-public class Atm {
-    private final HashMap<Integer, List<Banknote>> storage;
 
-    public Atm() {
-        storage = new HashMap<>();
-        storage.put(50, new ArrayList<>());
-        storage.put(100, new ArrayList<>());
-        storage.put(200, new ArrayList<>());
-        storage.put(500, new ArrayList<>());
-        storage.put(1000, new ArrayList<>());
-        storage.put(2000, new ArrayList<>());
-        storage.put(5000, new ArrayList<>());
+public record Atm(Storage storage) {
+
+    public List<Banknote> addMoney(List<Banknote> banknoteList) {
+        List<Banknote> banknoteToReturnList = new ArrayList<>();
+        for (Banknote banknote : banknoteList) {
+            List<Banknote> cell = storage.getCellMap().get(banknote.getValue());
+            if (cell != null) {
+                cell.add(banknote);
+            } else {
+                banknoteToReturnList.add(banknote);
+            }
+        }
+        return banknoteToReturnList;
     }
 
+    public List<Banknote> getMoney(double sum) {
+        int[] banknoteValueArray = Arrays.stream(Banknote.values())
+                .filter(banknote -> storage.getCellMap().get(banknote.getValue()) != null)
+                .filter(banknote -> !storage.getCellMap().get(banknote.getValue()).isEmpty())
+                .sorted((o1, o2) -> Integer.compare(o2.getValue(), o1.getValue()))
+                .mapToInt(Banknote::getValue)
+                .toArray();
+
+        List<Banknote> banknoteToGetList = new ArrayList<>();
+        for (int banknoteValue : banknoteValueArray) {
+            int count = (int) Math.floor(sum / banknoteValue);
+            if (storage.getCellMap().get(banknoteValue).size() <= count) {
+                count = storage.getCellMap().get(banknoteValue).size();
+            }
+            if (count != 0) {
+                sum -= (count * banknoteValue);
+                List<Banknote> banknoteList = storage.getCellMap().get(banknoteValue);
+                for (int i = 1; i <= count; i++) {
+                    banknoteToGetList.add(banknoteList.get(banknoteList.size() - i));
+                }
+            }
+        }
+
+        if (sum == 0) {
+            for (Banknote banknote : banknoteToGetList) {
+                storage.getCellMap().get(banknote.getValue()).remove(banknote);
+            }
+            return banknoteToGetList;
+        } else {
+            throw new SumNotAvailableException("Такая сумма не может быть выдана");
+        }
+    }
+
+    public int getSum() {
+        int sum = 0;
+        for (Map.Entry<Integer, List<Banknote>> mapEntry : storage.getCellMap().entrySet()) {
+            for (Banknote banknote : mapEntry.getValue()) {
+                sum += banknote.getValue();
+            }
+        }
+        return sum;
+    }
 
 }
