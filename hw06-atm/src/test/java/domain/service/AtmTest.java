@@ -41,9 +41,9 @@ class AtmTest {
             banknoteList.add(Banknote.value2000);
             banknoteList.add(Banknote.value5000);
         }
-        atm.getStorage().addMoney(banknoteList);
-        atm.getStorage().addMoney(List.of(Banknote.value200, Banknote.value1000));
-        assertThat(atm.getStorage().getSum()).isEqualTo(45450);
+        atm.addMoney(banknoteList);
+        atm.addMoney(List.of(Banknote.value200, Banknote.value1000));
+        assertThat(atm.getSum()).isEqualTo(45450);
     }
 
     @Test
@@ -58,9 +58,9 @@ class AtmTest {
             banknoteList.add(Banknote.value2000);
             banknoteList.add(Banknote.value5000);
         }
-        atm.getStorage().addMoney(banknoteList);
-        atm.getStorage().getMoney(36850);
-        assertThat(atm.getStorage().getSum()).isEqualTo(7400);
+        atm.addMoney(banknoteList);
+        atm.getMoney(36850);
+        assertThat(atm.getSum()).isEqualTo(7400);
         assertThat(atm.getStorage().getCellMap().get(5000).size()).isEqualTo(0);
         assertThat(atm.getStorage().getCellMap().get(2000).size()).isEqualTo(0);
         assertThat(atm.getStorage().getCellMap().get(1000).size()).isEqualTo(4);
@@ -82,9 +82,9 @@ class AtmTest {
             banknoteList.add(Banknote.value2000);
             banknoteList.add(Banknote.value5000);
         }
-        atm.getStorage().addMoney(banknoteList);
-        assertThrowsExactly(SumNotAvailableException.class, () -> atm.getStorage().getMoney(50000));
-        assertThat(atm.getStorage().getSum()).isEqualTo(44250);
+        atm.addMoney(banknoteList);
+        assertThrowsExactly(SumNotAvailableException.class, () -> atm.getMoney(50000));
+        assertThat(atm.getSum()).isEqualTo(44250);
     }
 
     @Test
@@ -99,9 +99,9 @@ class AtmTest {
             banknoteList.add(Banknote.value2000);
             banknoteList.add(Banknote.value5000);
         }
-        atm.getStorage().addMoney(banknoteList);
-        assertThrowsExactly(SumNotAvailableException.class, () -> atm.getStorage().getMoney(5120));
-        assertThat(atm.getStorage().getSum()).isEqualTo(44250);
+        atm.addMoney(banknoteList);
+        assertThrowsExactly(SumNotAvailableException.class, () -> atm.getMoney(5120));
+        assertThat(atm.getSum()).isEqualTo(44250);
     }
 
     @Test
@@ -116,8 +116,8 @@ class AtmTest {
             banknoteList.add(Banknote.value2000);
             banknoteList.add(Banknote.value5000);
         }
-        atm.getStorage().addMoney(banknoteList);
-        assertThat(atm.getStorage().getSum()).isEqualTo(44250);
+        atm.addMoney(banknoteList);
+        assertThat(atm.getSum()).isEqualTo(44250);
     }
 
 }
