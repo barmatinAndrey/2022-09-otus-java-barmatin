@@ -2,14 +2,15 @@ package ru.otus.crm.model;
 
 
 import lombok.*;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "client")
 public class Client implements Cloneable {
@@ -35,8 +36,15 @@ public class Client implements Cloneable {
     }
 
     public Client(Long id, String name) {
+        this(id, name, null, Collections.emptyList());
+    }
+
+    public Client(Long id, String name, Address address, List<Phone> phones) {
         this.id = id;
         this.name = name;
+        this.address = address;
+        this.phoneList = phones;
+        phoneList.forEach(p -> p.setClient(this));
     }
 
     @Override
