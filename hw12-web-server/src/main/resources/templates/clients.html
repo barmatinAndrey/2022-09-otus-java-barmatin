@@ -1,0 +1,83 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Клиенты</title>
+
+</head>
+
+<body>
+<h4>Добавить клиента</h4>
+<div>
+    <input type="text" id = "name" style="width:500px" placeholder="Введите имя клиента">
+</div>
+<br>
+<div>
+    <input type="text" id = "address" style="width:500px" placeholder="Введите адрес">
+</div>
+<br>
+<div>
+    <input type="text" id = "phones" style="width:500px" placeholder="Введите телефоны через запятую">
+</div>
+<br>
+<div>
+    <button onclick="saveClient()">Добавить</button>
+</div>
+<br>
+<div>
+    <button onclick="showClients()">Показать всех клиентов</button>
+</div>
+<br>
+<div id = "allClients"></div>
+
+
+<script>
+    function saveClient() {
+        const name = document.getElementById('name');
+        const address = document.getElementById('address');
+        const phones = document.getElementById('phones');
+
+        var Client = new Object();
+        var Address = new Object();
+
+        Client.id = null;
+        Client.name = name.value;
+        Address.id = null;
+        Address.street = address.value;
+        Client.address = Address;
+        Client.phoneList = [];
+        var phoneList = phones.value.split(/\s*,\s*/);
+        phoneList.forEach(function (phone) {
+            var Phone = new Object();
+            Phone.id = null;
+            Phone.number = phone;
+            Client.phoneList.push(Phone);
+        });
+
+        console.log(JSON.stringify(Client));
+
+        fetch('/api/client/', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Client)
+            })
+            .then(response => {
+               if (response.status == 200) {
+                   showClients();
+               }
+        })
+    }
+</script>
+
+<script>
+    function showClients() {
+        const allClients = document.getElementById('allClients');
+        fetch('/api/client/')
+            .then(response => response.text())
+            .then(text => allClients.innerHTML = text)
+    }
+</script>
+
+</body>
+</html>
