@@ -1,5 +1,8 @@
 package ru.otus.appcontainer;
 
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.reflections.scanners.SubTypesScanner;
 import ru.otus.AppComponentsException;
 import ru.otus.appcontainer.api.AppComponent;
 import ru.otus.appcontainer.api.AppComponentsContainer;
@@ -9,64 +12,61 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AppComponentsContainerImpl implements AppComponentsContainer {
     private final Map<String, Object> appComponentsByName = new HashMap<>();
 
-    public AppComponentsContainerImpl(Class<?> initialConfigClass) {
-        try {
-            processConfig(initialConfigClass);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public AppComponentsContainerImpl(Class<?>... initialConfigClasses) {
-        try {
-            processConfig(initialConfigClasses);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        processConfig(initialConfigClasses);
     }
 
-    private void processConfig(Class<?>... initialConfigClasses) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        List<Method> methodList = new ArrayList<>();
-        Map<Method, Object> configObjMap = new HashMap<>();
-        for (Class<?> configClass : initialConfigClasses) {
-            checkConfigClass(configClass);
-            Object configObj = configClass.getConstructor().newInstance();
-            for (Method method : configClass.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(AppComponent.class)) {
-                    methodList.add(method);
-                    configObjMap.put(method, configObj);
+    public AppComponentsContainerImpl(String packageName) {
+        Reflections reflections = new Reflections(packageName, new SubTypesScanner(false));
+        Set<Class<?>> initialConfigClasses = reflections.getSubTypesOf(Object.class);
+        processConfig(initialConfigClasses.toArray(new Class<?>[0]));
+    }
+
+    private void processConfig(Class<?>... initialConfigClasses) {
+        try {
+            List<Method> methodList = new ArrayList<>();
+            Map<Method, Object> configObjMap = new HashMap<>();
+            for (Class<?> configClass : initialConfigClasses) {
+                checkConfigClass(configClass);
+                Object configObj = configClass.getConstructor().newInstance();
+                for (Method method : configClass.getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(AppComponent.class)) {
+                        methodList.add(method);
+                        configObjMap.put(method, configObj);
+                    }
                 }
             }
+            methodList.sort(Comparator.comparingInt(m -> m.getAnnotation(AppComponent.class).order()));
 
-        }
-        methodList.sort(Comparator.comparingInt(m -> m.getAnnotation(AppComponent.class).order()));
-
-        Map<Class<?>, Object> objectMap = new HashMap<>();
-        for (Method method : methodList) {
-            Class<?> returnType = method.getReturnType();
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            Object[] parameters = new Object[parameterTypes.length];
-            for (int i = 0; i < parameterTypes.length; i++) {
-                Class<?> parameterType = parameterTypes[i];
-                Object parameter = objectMap.get(parameterType);
-                if (parameter != null) {
-                    parameters[i] = parameter;
+            Map<Class<?>, Object> objectMap = new HashMap<>();
+            for (Method method : methodList) {
+                Class<?> returnType = method.getReturnType();
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                Object[] parameters = new Object[parameterTypes.length];
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class<?> parameterType = parameterTypes[i];
+                    Object parameter = objectMap.get(parameterType);
+                    if (parameter != null) {
+                        parameters[i] = parameter;
+                    }
+                }
+                Object obj = method.invoke(configObjMap.get(method), parameters);
+                objectMap.put(returnType, obj);
+                if (appComponentsByName.get(method.getAnnotation(AppComponent.class).name()) == null) {
+                    appComponentsByName.put(method.getAnnotation(AppComponent.class).name(), obj);
+                } else {
+                    throw new AppComponentsException("В контексте не должно быть компонентов с одинаковым именем");
                 }
             }
-            Object obj = method.invoke(configObjMap.get(method), parameters);
-            objectMap.put(returnType, obj);
-            if (appComponentsByName.get(method.getAnnotation(AppComponent.class).name()) == null) {
-                appComponentsByName.put(method.getAnnotation(AppComponent.class).name(), obj);
-            }
-            else {
-                throw new AppComponentsException("В контексте не должно быть компонентов с одинаковым именем");
-            }
         }
-
+        catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void checkConfigClass(Class<?> configClass) {

@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import ru.otus.appcontainer.AppComponentsContainerImpl;
 import ru.otus.appcontainer.api.AppComponent;
 import ru.otus.appcontainer.api.AppComponentsContainerConfig;
-import ru.otus.config.AppConfig;
+import ru.otus.configsingle.AppConfig;
 import ru.otus.services.*;
 
 import java.io.PrintStream;
