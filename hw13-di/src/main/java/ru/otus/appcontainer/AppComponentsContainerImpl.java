@@ -21,11 +21,29 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         }
     }
 
-    private void processConfig(Class<?> configClass) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        checkConfigClass(configClass);
-        Object configObj = configClass.getConstructor().newInstance();
+    public AppComponentsContainerImpl(Class<?>... initialConfigClasses) {
+        try {
+            processConfig(initialConfigClasses);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-        List<Method> methodList = getOrderedMethodList(configClass);
+    private void processConfig(Class<?>... initialConfigClasses) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        List<Method> methodList = new ArrayList<>();
+        Map<Method, Object> configObjMap = new HashMap<>();
+        for (Class<?> configClass : initialConfigClasses) {
+            checkConfigClass(configClass);
+            Object configObj = configClass.getConstructor().newInstance();
+            for (Method method : configClass.getDeclaredMethods()) {
+                if (method.isAnnotationPresent(AppComponent.class)) {
+                    methodList.add(method);
+                    configObjMap.put(method, configObj);
+                }
+            }
+
+        }
+        methodList.sort(Comparator.comparingInt(m -> m.getAnnotation(AppComponent.class).order()));
 
         Map<Class<?>, Object> objectMap = new HashMap<>();
         for (Method method : methodList) {
@@ -39,7 +57,7 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
                     parameters[i] = parameter;
                 }
             }
-            Object obj = method.invoke(configObj, parameters);
+            Object obj = method.invoke(configObjMap.get(method), parameters);
             objectMap.put(returnType, obj);
             if (appComponentsByName.get(method.getAnnotation(AppComponent.class).name()) == null) {
                 appComponentsByName.put(method.getAnnotation(AppComponent.class).name(), obj);
@@ -55,17 +73,6 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
         if (!configClass.isAnnotationPresent(AppComponentsContainerConfig.class)) {
             throw new IllegalArgumentException(String.format("Given class is not config %s", configClass.getName()));
         }
-    }
-
-    private List<Method> getOrderedMethodList(Class<?> configClass) {
-        List<Method> methodList = new ArrayList<>();
-        for (Method method : configClass.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(AppComponent.class)) {
-                methodList.add(method);
-            }
-        }
-        methodList.sort(Comparator.comparingInt(m -> m.getAnnotation(AppComponent.class).order()));
-        return methodList;
     }
 
     @Override
