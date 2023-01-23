@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Клиенты</title>
+
+</head>
+
+<body>
+<h4>Добавить клиента</h4>
+<div>
+    <input type="text" id = "name_view" style="width:500px" placeholder="Введите имя клиента">
+</div>
+<br>
+<div>
+    <input type="text" id = "address_view" style="width:500px" placeholder="Введите адрес">
+</div>
+<br>
+<div>
+    <input type="text" id = "phones_view" style="width:500px" placeholder="Введите телефоны через запятую">
+</div>
+<br>
+<div>
+    <button onclick="saveClient()">Добавить</button>
+</div>
+<br>
+<div>
+    <button onclick="showClients()">Показать всех клиентов</button>
+</div>
+<br>
+<div id = "all_clients_view"></div>
+
+
+<script>
+    function saveClient() {
+        const name_view = document.getElementById('name_view');
+        const address_view = document.getElementById('address_view');
+        const phones_view = document.getElementById('phones_view');
+
+        var client = new Object();
+        var address = new Object();
+
+        client.id = null;
+        client.name = name_view.value;
+        address.id = null;
+        address.street = address_view.value;
+        client.address = address;
+        client.phoneSet = [];
+        var phoneSet = phones_view.value.split(/\s*,\s*/);
+        phoneSet.forEach(function (number) {
+            var phone = new Object();
+            phone.id = null;
+            phone.number = number;
+            client.phoneSet.push(phone);
+        });
+
+        console.log(JSON.stringify(client));
+
+        fetch('/api/client/', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(client)
+            })
+            .then(response => {
+               if (response.status == 200) {
+                   showClients();
+               }
+        })
+    }
+</script>
+
+<script>
+    function showClients() {
+        const allClients = document.getElementById('all_clients_view');
+        fetch('/api/client/')
+            .then(response => response.text())
+            .then(text => allClients.innerHTML = text)
+    }
+</script>
+
+</body>
+</html>
