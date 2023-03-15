@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package ru.barmatin.grpc.generated;
+
+option java_multiple_files = true;
+
+message NumberRequest {
+    int64 firstValue = 1;
+    int64 lastValue = 2;
+}
+
+message NumberResponse {
+    int64 responseValue = 1;
+}
+
+message EmptyMessage {}
+
+service NumberGeneratorService {
+    rpc sendRequest(NumberRequest) returns (stream NumberResponse);
+}
