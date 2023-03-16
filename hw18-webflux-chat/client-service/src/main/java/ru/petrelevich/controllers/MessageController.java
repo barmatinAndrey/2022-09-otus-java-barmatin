@@ -34,11 +34,16 @@ public class MessageController {
     @MessageMapping("/message.{roomId}")
     public void getMessage(@DestinationVariable String roomId, Message message) {
         logger.info("get message:{}, roomId:{}", message, roomId);
-        saveMessage(roomId, message)
-                .subscribe(msgId -> logger.info("message send id:{}", msgId));
+        if (!roomId.equals("1408")) {
+            saveMessage(roomId, message)
+                    .subscribe(msgId -> logger.info("message send id:{}", msgId));
 
-        template.convertAndSend(String.format("%s%s", TOPIC_TEMPLATE, roomId),
-                new Message(HtmlUtils.htmlEscape(message.messageStr())));
+            template.convertAndSend(String.format("%s%s", TOPIC_TEMPLATE, roomId),
+                    new Message(HtmlUtils.htmlEscape(message.messageStr())));
+
+            template.convertAndSend(String.format("%s%s", TOPIC_TEMPLATE, "1408"),
+                    new Message(HtmlUtils.htmlEscape(message.messageStr())));
+        }
     }
 
 
