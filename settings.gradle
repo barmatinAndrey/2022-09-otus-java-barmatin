@@ -20,4 +20,6 @@ include 'hw17-grpc:grpc-client'
 findProject(':hw17-grpc:grpc-client')?.name = 'grpc-client'
 include 'hw17-grpc:grpc-server'
 findProject(':hw17-grpc:grpc-server')?.name = 'grpc-server'
+include 'hw18-webflux-chat:client-service'
+include 'hw18-webflux-chat:datastore-service'
 
